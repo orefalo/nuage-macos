@@ -420,4 +420,38 @@ final class StreamPlayer {
         }
     }
 
+    // MARK: - Export
+
+    /// Downloads the current track to the Downloads folder and reveals it in Finder.
+    /// Returns the destination URL, or nil if there is no current track or the download failed.
+    @discardableResult
+    func exportCurrentTrack() async -> URL? {
+        guard let track = currentStream else {
+            print("No track currently playing")
+            return nil
+        }
+
+        do {
+            let asset = try await track.prepare()
+            let sourceURL = asset.url
+
+            // Sanitize the title for a safe filename
+            let safeTitle = track.title.replacingOccurrences(of: "[^a-zA-Z0-9\\s\\-_\\.]", with: "", options: .regularExpression)
+            let downloadsFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
+            let pathExtension = sourceURL.pathExtension.isEmpty ? "mp3" : sourceURL.pathExtension
+            let destinationURL = downloadsFolder.appendingPathComponent("\(safeTitle).\(pathExtension)")
+
+            let (tempFile, _) = try await URLSession.shared.download(from: sourceURL)
+            try? FileManager.default.removeItem(at: destinationURL)
+            try FileManager.default.moveItem(at: tempFile, to: destinationURL)
+
+            NSWorkspace.shared.open(downloadsFolder)
+            return destinationURL
+        }
+        catch {
+            print("Failed to export track: \(error)")
+            return nil
+        }
+    }
+
 }

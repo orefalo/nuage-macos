@@ -9,7 +9,8 @@ import SwiftUI
 import SoundCloud
 
 struct FeedbackStack<T: SoundCloudIdentifiable>: View {
-    
+    @Environment(StreamPlayer.self) private var player
+
     private var item: T?
     private var horizontal: Bool
     
@@ -99,6 +100,12 @@ struct FeedbackStack<T: SoundCloudIdentifiable>: View {
             .disabled(item == nil)
             .buttonStyle(.borderless)
         }
+
+        Button(action: { Task { await player.exportCurrentTrack() } }) {
+            Image(systemName: "arrow.down.circle")
+        }
+        .disabled(item == nil)
+        .buttonStyle(.borderless)
     }
     
     init(for playlist: T, horizontal: Bool = true) where T: Playlist {
