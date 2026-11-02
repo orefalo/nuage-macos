@@ -89,3 +89,6 @@ fastlane/test_output
 
 iOSInjectionProject/
 .DS_Store
+.vscode
+Nuage.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+Nuage.app
